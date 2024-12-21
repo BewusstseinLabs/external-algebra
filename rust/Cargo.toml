@@ -1,0 +1,14 @@
+[package]
+name = "exterior-algebra"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+thiserror = "2.0.8"
+num = "0.4.3"
+memory = { path = "../../memory/rust" }
+arithmetic = { path = "../../arithmetic/rust" }
+linear-algebra = { path = "../../linear-algebra/rust" }
