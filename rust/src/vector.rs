@@ -1,7 +1,7 @@
 
 use linear_algebra::vector::Vector;
 
-use crate::operators::{
+use crate::ops::{
     InteriorProduct,
     ExteriorProduct
 };
