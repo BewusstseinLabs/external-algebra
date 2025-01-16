@@ -2,25 +2,26 @@
 
 use std::{
     fmt::Debug,
-    ops::{ Add, AddAssign, Deref, DerefMut, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Sub, SubAssign }
+    ops::{ Neg, Add, AddAssign, Deref, DerefMut, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Sub, SubAssign }
 };
 use num::traits::{ Num, Float };
 
 use linear_algebra::{
     ops::{
         Magnitude,
-        InnerProduct
+        //InnerProduct
     },
-    vector::Vector};
+    //vector::Vector
+};
 
 use crate::{
-    reverse,
-    progression,
-    unique_combinations,
+    //reverse,
+    //progression,
+    //unique_combinations,
     ops::{
         //InteriorProduct,
-        ExteriorProduct,
-        GeometricProduct
+        //ExteriorProduct,
+        //GeometricProduct
     },
     traits::{
         XY,
@@ -30,9 +31,9 @@ use crate::{
         YZ,
         YZMut
     },
-    trivector::TriVector,
-    multivector::MultiVector,
-    rotor::Rotor,
+    //trivector::TriVector,
+    //multivector::MultiVector1,
+    //rotor::Rotor,
 };
 
 /// A vector type of generic element and size.
@@ -48,19 +49,19 @@ where
     T: 'static + Copy + Default + Debug,
     [(); DIM * ( DIM - 1 ) / 2 ]:
 {
-    /// Creates a new const [`Vector`].
+    /// Creates a new const [`BiVector`].
     ///
     pub const fn new_const( src: [T; DIM * ( DIM - 1 ) / 2] ) -> Self {
         Self ( src )
     }
 
-    /// Creates a new [`Vector`].
+    /// Creates a new [`BiVector`].
     ///
     pub fn new( src: [T; DIM * ( DIM - 1 ) / 2] ) -> Self {
         Self ( src )
     }
 
-    /// Creates a new zero filled [`Vector`].
+    /// Creates a new zero filled [`BiVector`].
     ///
     pub fn zero() -> Self
     where
@@ -69,17 +70,17 @@ where
         Self ( [T::zero(); DIM * ( DIM - 1 ) / 2] )
     }
 
-    /// Returns an iterator over the elements of the [`Vector`].
+    /// Returns an iterator over the elements of the [`BiVector`].
     ///
-    /// The iterator yields references to the elements of the [`Vector`] in order.
+    /// The iterator yields references to the elements of the [`BiVector`] in order.
     ///
     pub fn iter( &self ) -> impl Iterator<Item = &T> {
         self.0.iter()
     }
 
-    /// Returns an iterator over mutable references to the elements of the [`Vector`].
+    /// Returns an iterator over mutable references to the elements of the [`BiVector`].
     ///
-    /// The iterator yields mutable references to the elements of the [`Vector`] in order.
+    /// The iterator yields mutable references to the elements of the [`BiVector`] in order.
     ///
     pub fn iter_mut( &mut self ) -> impl Iterator<Item = &mut T> {
         self.0.iter_mut()
@@ -220,6 +221,50 @@ where
     }
 }
 
+impl<T, const DIM: usize> Neg for BiVector<T, DIM>
+where
+    T: Default + Copy + Debug + Neg<Output = T>,
+    [(); DIM * ( DIM - 1 ) / 2 ]:
+{
+    type Output = Self;
+
+    fn neg( mut self ) -> Self::Output {
+        self.iter_mut()
+            .for_each( |a| *a = -*a );
+        self
+    }
+}
+
+impl<T, const DIM: usize> Add for BiVector<T, DIM>
+where
+    T: Default + Copy + Debug + Add<Output = T>,
+    Self: Clone,
+    [(); DIM * ( DIM - 1 ) / 2]:
+{
+    type Output = Self;
+
+    fn add( mut self, other: Self ) -> Self::Output {
+        self.iter_mut().zip( other.iter() )
+            .for_each( |( a, &b )| *a = *a + b );
+        self
+    }
+}
+
+impl<T, const DIM: usize> Sub for BiVector<T, DIM>
+where
+    T: Default + Copy + Debug + Sub<Output = T>,
+    Self: Clone,
+    [(); DIM * ( DIM - 1 ) / 2 ]:
+{
+    type Output = Self;
+
+    fn sub( mut self, other: Self ) -> Self::Output {
+        self.iter_mut().zip( other.iter() )
+            .for_each( |( a, &b )| *a = *a - b );
+        self
+    }
+}
+
 impl<T, const DIM: usize> Add<T> for BiVector<T, DIM>
 where
     T: Default + Copy + Debug + Add<Output = T>,
@@ -280,6 +325,28 @@ where
     }
 }
 
+impl<T, const DIM: usize> AddAssign for BiVector<T, DIM>
+where
+    T: Default + Copy + Debug + AddAssign,
+    [(); DIM * ( DIM - 1 ) / 2]:
+{
+    fn add_assign( &mut self, other: Self ) {
+        self.iter_mut().zip( other.iter() )
+            .for_each( |( a, &b )| *a += b );
+    }
+}
+
+impl<T, const DIM: usize> SubAssign for BiVector<T, DIM>
+where
+    T: Default + Copy + Debug + SubAssign,
+    [(); DIM * ( DIM - 1 ) / 2]:
+{
+    fn sub_assign( &mut self, other: Self ) {
+        self.iter_mut().zip( other.iter() )
+            .for_each( |( a, &b )| *a -= b );
+    }
+}
+
 impl<T, const DIM: usize> AddAssign<T> for BiVector<T, DIM>
 where
     T: Default + Copy + Debug + AddAssign,
@@ -321,72 +388,6 @@ where
     fn div_assign( &mut self, scalar: T ) {
         self.iter_mut()
             .for_each( |a| *a /= scalar );
-    }
-}
-
-//
-
-impl<T, const DIM: usize> Add for &BiVector<T, DIM>
-where
-    T: Default + Copy + Debug + Add<Output = T>,
-    Self: Clone,
-    [(); DIM * ( DIM - 1 ) / 2 ]:
-{
-    type Output = BiVector<T, DIM>;
-
-    fn add( self, other: Self ) -> Self::Output {
-        let mut result = BiVector::<T, DIM>::default();
-        self.iter().zip( other.iter() ).zip( result.iter_mut() )
-            .for_each( |( ( &a, &b ), c )| *c = a + b );
-        result
-    }
-}
-
-impl<T, const DIM: usize> Sub for &BiVector<T, DIM>
-where
-    T: Default + Copy + Debug + Sub<Output = T>,
-    Self: Clone,
-    [(); DIM * ( DIM - 1 ) / 2 ]:
-{
-    type Output = BiVector<T, DIM>;
-
-    fn sub( self, other: Self ) -> Self::Output {
-        let mut result = BiVector::<T, DIM>::default();
-        self.iter().zip( other.iter() ).zip( result.iter_mut() )
-            .for_each( |( ( &a, &b ), c )| *c = a - b );
-        result
-    }
-}
-
-impl<T, const DIM: usize> Mul for &BiVector<T, DIM>
-where
-    T: Default + Copy + Debug + Mul<Output = T>,
-    Self: Clone,
-    [(); DIM * ( DIM - 1 ) / 2 ]:
-{
-    type Output = BiVector<T, DIM>;
-
-    fn mul( self, other: Self ) -> Self::Output {
-        let mut result = BiVector::<T, DIM>::default();
-        self.iter().zip( other.iter() ).zip( result.iter_mut() )
-            .for_each( |( ( &a, &b ), c )| *c = a * b );
-        result
-    }
-}
-
-impl<T, const DIM: usize> Div for &BiVector<T, DIM>
-where
-    T: Default + Copy + Debug + Div<Output = T>,
-    Self: Clone,
-    [(); DIM * ( DIM - 1 ) / 2 ]:
-{
-    type Output = BiVector<T, DIM>;
-
-    fn div( self, other: Self ) -> Self::Output {
-        let mut result = BiVector::<T, DIM>::default();
-        self.iter().zip( other.iter() ).zip( result.iter_mut() )
-            .for_each( |( ( &a, &b ), c )| *c = a / b );
-        result
     }
 }
 
@@ -454,50 +455,6 @@ where
     }
 }
 
-impl<T, const DIM: usize> AddAssign for &mut BiVector<T, DIM>
-where
-    T: Default + Copy + Debug + AddAssign,
-    [(); DIM * ( DIM - 1 ) / 2 ]:
-{
-    fn add_assign( &mut self, other: Self ) {
-        self.iter_mut().zip( other.iter() )
-            .for_each( |( a, &b )| *a += b );
-    }
-}
-
-impl<T, const DIM: usize> SubAssign for &mut BiVector<T, DIM>
-where
-    T: Default + Copy + Debug + SubAssign,
-    [(); DIM * ( DIM - 1 ) / 2 ]:
-{
-    fn sub_assign( &mut self, other: Self ) {
-        self.iter_mut().zip( other.iter() )
-            .for_each( |( a, &b )| *a -= b );
-    }
-}
-
-impl<T, const DIM: usize> MulAssign for &mut BiVector<T, DIM>
-where
-    T: Default + Copy + Debug + MulAssign,
-    [(); DIM * ( DIM - 1 ) / 2 ]:
-{
-    fn mul_assign( &mut self, other: Self ) {
-        self.iter_mut().zip( other.iter() )
-            .for_each( |( a, &b )| *a *= b );
-    }
-}
-
-impl<T, const DIM: usize> DivAssign for &mut BiVector<T, DIM>
-where
-    T: Default + Copy + Debug + DivAssign,
-    [(); DIM * ( DIM - 1 ) / 2 ]:
-{
-    fn div_assign( &mut self, other: Self ) {
-        self.iter_mut().zip( other.iter() )
-            .for_each( |( a, &b )| *a /= b );
-    }
-}
-
 impl<T, const DIM: usize> AddAssign<T> for &mut BiVector<T, DIM>
 where
     T: Default + Copy + Debug + AddAssign,
@@ -555,49 +512,6 @@ where
 }
 
 /*
-impl<T, const COL: usize> InteriorProduct for Vector<T, COL>
-where
-    T: Default + Debug + Copy
-{
-    type Output;
-
-    fn interior_product( self, rhs: Self ) -> Self::Output {
-
-    }
-}
-*/
-
-impl<T, const COL: usize> ExteriorProduct<Vector<T, COL>> for Vector<T, COL>
-where
-    T: Default + std::fmt::Debug + Copy + Sub<Output = T> + Mul<Output = T>,
-    [(); COL * ( COL - 1 ) / 2 ]:
-{
-    type Output = BiVector<T, COL>;
-
-    fn exterior_product( self, rhs: Vector<T, COL> ) -> Self::Output {
-        let combinations: [( usize, usize ); COL * ( COL - 1 ) / 2 ] = unique_combinations( progression() );
-        let mut res = BiVector::<T, COL>::default();
-        for ( k, ( i, j ) ) in combinations.iter().enumerate() {
-            res[ k ] = self[ *i ] * rhs[ *j ] - self[ *j ] * rhs[ *i ];
-        }
-        res
-    }
-}
-
-impl<T, const COL: usize> GeometricProduct<Vector<T, COL>> for Vector<T, COL>
-where
-    T: Default + std::fmt::Debug + Copy + Sub<Output = T> + Mul<Output = T> + Num,
-    Self: InnerProduct<Vector<T, COL>, Output = T> + ExteriorProduct<Vector<T, COL>, Output = BiVector<T, COL>>,
-    [(); COL * ( COL - 1 ) / 2 ]:
-{
-    type Output = ( T, BiVector<T, COL> );
-
-    fn geometric_product( self, rhs: Vector<T, COL> ) -> Self::Output {
-        ( self.inner_product( rhs ), self.exterior_product( rhs ) )
-    }
-}
-
-/*
 impl<T, const COL: usize> GeometricProduct<BiVector<T, COL>> for BiVector<T, COL>
 where
     T: Default + std::fmt::Debug + Copy + Sub<Output = T> + Mul<Output = T> + Num,
@@ -616,9 +530,15 @@ where
 }
 */
 
+pub type BiVector2<T> = BiVector<T, 2>;
+pub type BiVector3<T> = BiVector<T, 3>;
+pub type BiVector4<T> = BiVector<T, 4>;
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use linear_algebra::vector::Vector;
+    use crate::ops::ExteriorProduct;
 
     #[test]
     fn exterior_product_2() {

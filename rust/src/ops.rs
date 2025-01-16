@@ -17,6 +17,18 @@ pub trait ExteriorProduct<Rhs = Self> {
     fn exterior_product( self, rhs: Rhs ) -> Self::Output;
 }
 
+pub trait GeometricAdd<Rhs = Self> {
+    type Output;
+
+    fn geometric_add( self, rhs: Rhs ) -> Self::Output;
+}
+
+pub trait GeometricSub<Rhs = Self> {
+    type Output;
+
+    fn geometric_sub( self, rhs: Rhs ) -> Self::Output;
+}
+
 pub trait GeometricProduct<Rhs = Self> {
     type Output;
 
