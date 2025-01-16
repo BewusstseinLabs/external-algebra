@@ -6,7 +6,10 @@
 
 pub mod traits;
 pub mod ops;
+pub mod vector;
 pub mod bivector;
+pub mod trivector;
+pub mod multivector;
 pub mod rotor;
 
 pub const fn inclusive_combinations<T, const N: usize>( items: [T; N] ) -> [( T, T ); N * N]
@@ -92,6 +95,18 @@ pub const fn progression<const N: usize>() -> [usize; N] {
     }
     result
 }
+
+use linear_algebra::{
+    ops::InnerProduct,
+    vector::Vector
+};
+use crate::{
+    ops::{
+        ExteriorProduct,
+        GeometricProduct
+    },
+    bivector::BiVector
+};
 
 #[cfg(test)]
 mod tests {
