@@ -42,7 +42,6 @@ pub trait ScalarComponentMut<T> {
 pub trait VectorComponent<T, const DIM: usize>
 where
     T: 'static + Copy + Default + std::fmt::Debug,
-    [(); DIM * ( DIM - 1 ) / 2 ]:
 {
     fn vector( &self ) -> &Vector<T, DIM>;
 }
@@ -50,7 +49,6 @@ where
 pub trait VectorComponentMut<T, const DIM: usize>
 where
     T: 'static + Copy + Default + std::fmt::Debug,
-    [(); DIM * ( DIM - 1 ) / 2 ]:
 {
     fn vector_mut( &mut self ) -> &mut Vector<T, DIM>;
 }
@@ -74,7 +72,6 @@ where
 pub trait TriVectorComponent<T, const DIM: usize>
 where
     T: 'static + Copy + Default + std::fmt::Debug,
-    [(); DIM * ( DIM - 1 ) / 2 ]:
 {
     fn trivector( &self ) -> &TriVector<T, DIM>;
 }
@@ -82,7 +79,6 @@ where
 pub trait TriVectorComponentMut<T, const DIM: usize>
 where
     T: 'static + Copy + Default + std::fmt::Debug,
-    [(); DIM * ( DIM - 1 ) / 2 ]:
 {
     fn trivector_mut( &mut self ) -> &mut TriVector<T, DIM>;
 }

@@ -95,8 +95,7 @@ where
 impl<T, const DIM: usize> Add for TriVector<T, DIM>
 where
     T: Default + Copy + Debug + Add<Output = T>,
-    Self: Clone,
-    [(); DIM * ( DIM - 1 ) / 2]:
+    Self: Clone
 {
     type Output = Self;
 
@@ -109,8 +108,7 @@ where
 impl<T, const DIM: usize> Sub for TriVector<T, DIM>
 where
     T: Default + Copy + Debug + Sub<Output = T>,
-    Self: Clone,
-    [(); DIM * ( DIM - 1 ) / 2 ]:
+    Self: Clone
 {
     type Output = Self;
 
@@ -120,10 +118,61 @@ where
     }
 }
 
+impl<T, const DIM: usize> Add<T> for TriVector<T, DIM>
+where
+    T: Default + Copy + Debug + Add<Output = T>,
+    Self: Clone
+{
+    type Output = Self;
+
+    fn add( mut self, other: T ) -> Self::Output {
+        self.0 = self.0 + other;
+        self
+    }
+}
+
+impl<T, const DIM: usize> Sub<T> for TriVector<T, DIM>
+where
+    T: Default + Copy + Debug + Sub<Output = T>,
+    Self: Clone
+{
+    type Output = Self;
+
+    fn sub( mut self, other: T ) -> Self::Output {
+        self.0 = self.0 - other;
+        self
+    }
+}
+
+impl<T, const DIM: usize> Mul<T> for TriVector<T, DIM>
+where
+    T: Default + Copy + Debug + Mul<Output = T>,
+    Self: Clone
+{
+    type Output = Self;
+
+    fn mul( mut self, other: T ) -> Self::Output {
+        self.0 = self.0 * other;
+        self
+    }
+}
+
+impl<T, const DIM: usize> Div<T> for TriVector<T, DIM>
+where
+    T: Default + Copy + Debug + Div<Output = T>,
+    Self: Clone
+{
+    type Output = Self;
+
+    fn div( mut self, other: T ) -> Self::Output {
+        self.0 = self.0 / other;
+        self
+    }
+}
+
 impl<T, const DIM: usize> AddAssign for TriVector<T, DIM>
 where
-    T: Default + Copy + Debug + AddAssign,
-    [(); DIM * ( DIM - 1 ) / 2]:
+    T: Default + Copy + Debug + AddAssign
 {
     fn add_assign( &mut self, other: Self ) {
         self.0 += other.0;
@@ -132,8 +181,7 @@ where
 
 impl<T, const DIM: usize> SubAssign for TriVector<T, DIM>
 where
-    T: Default + Copy + Debug + SubAssign,
-    [(); DIM * ( DIM - 1 ) / 2]:
+    T: Default + Copy + Debug + SubAssign
 {
     fn sub_assign( &mut self, other: Self ) {
         self.0 -= other.0;
