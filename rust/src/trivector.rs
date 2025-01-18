@@ -14,8 +14,12 @@ use crate::{
     unique_combinations,
     ops::{
         //InteriorProduct,
-        ExteriorProduct
+        ExteriorProduct,
+        GeometricAdd,
+        GeometricSub,
+        GeometricProduct,
     },
+    bivector::BiVector
 };
 
 /// A vector type of generic element and size.
@@ -185,6 +189,88 @@ where
 {
     fn sub_assign( &mut self, other: Self ) {
         self.0 -= other.0;
+    }
+}
+
+impl<T, const DIM: usize> GeometricAdd<Vector<T, DIM>> for TriVector<T, DIM>
+where
+    T: Default + std::fmt::Debug + Copy + Sub<Output = T> + Mul<Output = T> + Num
+{
+    type Output = ( Vector<T, DIM>, TriVector<T, DIM> );
+
+    fn geometric_add( self, rhs: Vector<T, DIM> ) -> Self::Output {
+        ( rhs, self )
+    }
+}
+
+impl<T, const DIM: usize> GeometricSub<Vector<T, DIM>> for TriVector<T, DIM>
+where
+    T: Default + std::fmt::Debug + Copy + Sub<Output = T> + Mul<Output = T> + Num
+{
+    type Output = ( Vector<T, DIM>, TriVector<T, DIM> );
+
+    fn geometric_sub( self, rhs: Vector<T, DIM> ) -> Self::Output {
+        ( -rhs, self )
+    }
+}
+
+impl<T, const DIM: usize> GeometricAdd<BiVector<T, DIM>> for TriVector<T, DIM>
+where
+    T: Default + std::fmt::Debug + Copy + Sub<Output = T> + Mul<Output = T> + Num,
+    [(); DIM * ( DIM - 1 ) / 2 ]:
+{
+    type Output = ( BiVector<T, DIM>, TriVector<T, DIM> );
+
+    fn geometric_add( self, rhs: Vector<T, DIM> ) -> Self::Output {
+        ( rhs, self )
+    }
+}
+
+impl<T, const DIM: usize> GeometricSub<BiVector<T, DIM>> for TriVector<T, DIM>
+where
+    T: Default + std::fmt::Debug + Copy + Sub<Output = T> + Mul<Output = T> + Num,
+    [(); DIM * ( DIM - 1 ) / 2 ]:
+{
+    type Output = ( BiVector<T, DIM>, TriVector<T, DIM> );
+
+    fn geometric_sub( self, rhs: Vector<T, DIM> ) -> Self::Output {
+        ( -rhs, self )
+    }
+}
+
+impl<T, const DIM: usize> GeometricProduct<Vector<T, DIM>> for TriVector<T, DIM>
+where
+    T: Default + std::fmt::Debug + Copy + Sub<Output = T> + Mul<Output = T> + Num,
+    [(); DIM * ( DIM - 1 ) / 2 ]:
+{
+    type Output = BiVector<T, DIM>;
+
+    fn geometric_product( self, rhs: Vector<T, DIM> ) -> Self::Output {
+
+    }
+}
+
+impl<T, const DIM: usize> GeometricProduct<BiVector<T, DIM>> for TriVector<T, DIM>
+where
+    T: Default + std::fmt::Debug + Copy + Sub<Output = T> + Mul<Output = T> + Num,
+    [(); DIM * ( DIM - 1 ) / 2 ]:
+{
+    type Output = Vector<T, DIM>;
+
+    fn geometric_product( self, rhs: BiVector<T, DIM> ) -> Self::Output {
+
+    }
+}
+
+impl<T, const DIM: usize> GeometricProduct for TriVector<T, DIM>
+where
+    T: Default + std::fmt::Debug + Copy + Sub<Output = T> + Mul<Output = T> + Num,
+    [(); DIM * ( DIM - 1 ) / 2 ]:
+{
+    type Output = T;
+
+    fn geometric_product( self, rhs: TriVector<T, DIM> ) -> Self::Output {
+
     }
 }
 
