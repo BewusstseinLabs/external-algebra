@@ -6,7 +6,10 @@ use std::{
 };
 use num::traits::Num;
 
-use linear_algebra::vector::Vector;
+use linear_algebra::{
+    ops::InnerProduct,
+    vector::Vector
+};;
 
 use crate::{
     ops::{

@@ -9,18 +9,15 @@ use num::traits::{ Num, Float };
 use linear_algebra::{
     ops::{
         Magnitude,
-        //InnerProduct
+        InnerProduct
     },
     vector::Vector
 };
 
 use crate::{
-    //reverse,
-    //progression,
-    //unique_combinations,
     ops::{
         //InteriorProduct,
-        //ExteriorProduct,
+        ExteriorProduct,
         GeometricAdd,
         GeometricSub,
         GeometricProduct
@@ -512,6 +509,73 @@ where
     }
 }
 
+impl<T, const DIM: usize> InnerProduct for BiVector<T, DIM>
+where
+    T: Default + Copy + Debug + Mul<Output = T> + Add<Output = T> + Neg<Output = T>,
+    [(); DIM * ( DIM - 1 ) / 2 ]:
+{
+    type Output = T;
+
+    fn inner_product( self, rhs: BiVector<T, DIM> ) -> Self::Output {
+        -self.iter().zip( rhs.iter() )
+            .fold( T::default(), |acc, ( &a, &b )| acc + a * b )
+    }
+}
+
+impl<T, const DIM: usize> InnerProduct<Vector<T, DIM>> for BiVector<T, DIM>
+where
+    T: Default + std::fmt::Debug + Copy + Sub<Output = T> + Mul<Output = T>,
+    [(); DIM * ( DIM - 1 ) / 2 ]:
+{
+    type Output = Vector<T, { DIM * ( DIM - 1 ) / 2 }>;
+
+    fn inner_product( self, rhs: Vector<T, DIM> ) -> Self::Output {
+        let mut res = Vector::<T, { DIM * ( DIM - 1 ) / 2 }>::default();
+        for i in 0..( DIM - 1 ) {
+            for j in ( i + 1 )..DIM {
+                res[ j ] = ( self[ i ] * rhs[ j ] ) - ( self[ i ] * rhs[ i ] );
+            }
+        }
+        res
+    }
+}
+
+impl<T, const DIM: usize> ExteriorProduct<Vector<T, DIM>> for BiVector<T, DIM>
+where
+    T: Default + std::fmt::Debug + Copy + AddAssign + Mul<Output = T>,
+    [(); DIM * ( DIM - 1 ) / 2 ]:
+{
+    type Output = TriVector<T, DIM>;
+
+    fn exterior_product( self, rhs: Vector<T, DIM> ) -> Self::Output {
+        let mut res = T::default();
+        for i in 0..( DIM - 1 ) {
+            for j in ( i + 1 )..DIM {
+                res += self[ j ] * rhs[ i ];
+            }
+        }
+        TriVector::new( res )
+    }
+}
+
+impl<T, const DIM: usize> ExteriorProduct for BiVector<T, DIM>
+where
+    T: Default + std::fmt::Debug + Copy + Sub<Output = T> + Mul<Output = T>,
+    [(); DIM * ( DIM - 1 ) / 2 ]:
+{
+    type Output = BiVector<T, DIM>;
+
+    fn exterior_product( self, rhs: BiVector<T, DIM> ) -> Self::Output {
+        let mut res = BiVector::<T, DIM>::default();
+        for i in 0..( DIM - 1 ) {
+            for j in ( i + 1 )..DIM {
+                res[ j ] = self[ i ] * rhs[ j ] - self[ j ] * rhs[ i ];
+            }
+        }
+        res
+    }
+}
+
 impl<T, const DIM: usize> GeometricAdd<Vector<T, DIM>> for BiVector<T, DIM>
 where
     T: Default + std::fmt::Debug + Copy + Sub<Output = T> + Mul<Output = T> + Num,
@@ -526,7 +590,7 @@ where
 
 impl<T, const DIM: usize> GeometricSub<Vector<T, DIM>> for BiVector<T, DIM>
 where
-    T: Default + std::fmt::Debug + Copy + Sub<Output = T> + Mul<Output = T> + Num,
+    T: Default + std::fmt::Debug + Copy + Sub<Output = T> + Mul<Output = T> + Neg<Output = T> + Num,
     [(); DIM * ( DIM - 1 ) / 2 ]:
 {
     type Output = ( Vector<T, DIM>, BiVector<T, DIM> );
@@ -538,25 +602,25 @@ where
 
 impl<T, const DIM: usize> GeometricProduct<Vector<T, DIM>> for BiVector<T, DIM>
 where
-    T: Default + std::fmt::Debug + Copy + Sub<Output = T> + Mul<Output = T> + Num,
+    T: Default + std::fmt::Debug + Copy + AddAssign + Mul<Output = T> + Num,
     [(); DIM * ( DIM - 1 ) / 2 ]:
 {
-    type Output = ( Vector<T, DIM>, TriVector<T, DIM> );
+    type Output = ( Vector<T, { DIM * ( DIM - 1 ) / 2 }>, TriVector<T, DIM> );
 
     fn geometric_product( self, rhs: Vector<T, DIM> ) -> Self::Output {
-
+        ( self.inner_product( rhs ), self.exterior_product( rhs ) )
     }
 }
 
 impl<T, const DIM: usize> GeometricProduct for BiVector<T, DIM>
 where
-    T: Default + std::fmt::Debug + Copy + Sub<Output = T> + Mul<Output = T> + Num,
+    T: Default + std::fmt::Debug + Copy + Sub<Output = T> + Mul<Output = T> + Neg<Output = T> + Num,
     [(); DIM * ( DIM - 1 ) / 2 ]:
 {
     type Output = ( T, BiVector<T, DIM> );
 
     fn geometric_product( self, rhs: BiVector<T, DIM> ) -> Self::Output {
-
+        ( self.inner_product( rhs ), self.exterior_product( rhs ) )
     }
 }
 

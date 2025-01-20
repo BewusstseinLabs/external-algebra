@@ -9,9 +9,6 @@ use num::traits::Num;
 use linear_algebra::vector::Vector;
 
 use crate::{
-    reverse,
-    progression,
-    unique_combinations,
     ops::{
         //InteriorProduct,
         ExteriorProduct,
@@ -205,7 +202,7 @@ where
 
 impl<T, const DIM: usize> GeometricSub<Vector<T, DIM>> for TriVector<T, DIM>
 where
-    T: Default + std::fmt::Debug + Copy + Sub<Output = T> + Mul<Output = T> + Num
+    T: Default + std::fmt::Debug + Copy + Sub<Output = T> + Mul<Output = T> + Neg<Output = T> + Num
 {
     type Output = ( Vector<T, DIM>, TriVector<T, DIM> );
 
@@ -221,19 +218,19 @@ where
 {
     type Output = ( BiVector<T, DIM>, TriVector<T, DIM> );
 
-    fn geometric_add( self, rhs: Vector<T, DIM> ) -> Self::Output {
+    fn geometric_add( self, rhs: BiVector<T, DIM> ) -> Self::Output {
         ( rhs, self )
     }
 }
 
 impl<T, const DIM: usize> GeometricSub<BiVector<T, DIM>> for TriVector<T, DIM>
 where
-    T: Default + std::fmt::Debug + Copy + Sub<Output = T> + Mul<Output = T> + Num,
+    T: Default + std::fmt::Debug + Copy + Sub<Output = T> + Mul<Output = T> + Neg<Output = T> + Num,
     [(); DIM * ( DIM - 1 ) / 2 ]:
 {
     type Output = ( BiVector<T, DIM>, TriVector<T, DIM> );
 
-    fn geometric_sub( self, rhs: Vector<T, DIM> ) -> Self::Output {
+    fn geometric_sub( self, rhs: BiVector<T, DIM> ) -> Self::Output {
         ( -rhs, self )
     }
 }
@@ -246,31 +243,39 @@ where
     type Output = BiVector<T, DIM>;
 
     fn geometric_product( self, rhs: Vector<T, DIM> ) -> Self::Output {
-
+        let mut res = BiVector::<T, DIM>::default();
+        res.iter_mut().zip( rhs.iter() ).for_each( |( res, &rhs )| {
+            *res = self.0 * rhs;
+        });
+        res
     }
 }
 
 impl<T, const DIM: usize> GeometricProduct<BiVector<T, DIM>> for TriVector<T, DIM>
 where
-    T: Default + std::fmt::Debug + Copy + Sub<Output = T> + Mul<Output = T> + Num,
+    T: Default + std::fmt::Debug + Copy + Sub<Output = T> + Mul<Output = T> + Neg<Output = T> + Num,
     [(); DIM * ( DIM - 1 ) / 2 ]:
 {
-    type Output = Vector<T, DIM>;
+    type Output = Vector<T, { DIM * ( DIM - 1 ) / 2 }>;
 
     fn geometric_product( self, rhs: BiVector<T, DIM> ) -> Self::Output {
-
+        let mut res = Vector::<T, { DIM * ( DIM - 1 ) / 2 }>::default();
+        res.iter_mut().zip( rhs.iter() ).for_each( |( res, &rhs )| {
+            *res = self.0 * rhs;
+        });
+        -res
     }
 }
 
 impl<T, const DIM: usize> GeometricProduct for TriVector<T, DIM>
 where
-    T: Default + std::fmt::Debug + Copy + Sub<Output = T> + Mul<Output = T> + Num,
+    T: Default + std::fmt::Debug + Copy + Sub<Output = T> + Mul<Output = T> + Neg<Output = T> + Num,
     [(); DIM * ( DIM - 1 ) / 2 ]:
 {
     type Output = T;
 
     fn geometric_product( self, rhs: TriVector<T, DIM> ) -> Self::Output {
-
+        -self.0 * rhs.0
     }
 }
 

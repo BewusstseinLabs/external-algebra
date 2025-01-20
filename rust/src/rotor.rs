@@ -19,6 +19,7 @@ use crate::{
     ops::{
         //InteriorProduct,
         //ExteriorProduct
+        GeometricProduct
     },
     traits::{
         ScalarComponent,
@@ -115,6 +116,26 @@ where
     }
 }
 
+impl<T, const DIM: usize> From<( T, BiVector<T, DIM> )> for Rotor<T, DIM>
+where
+    T: 'static + Copy + Default + Debug,
+    [(); DIM * ( DIM - 1 ) / 2 ]:
+{
+    fn from( src: ( T, BiVector<T, DIM> ) ) -> Self {
+        unsafe { *( &src as *const ( T, BiVector<T, DIM> ) as *const Rotor<T, DIM> ) } // SAFETY: This is safe because they are the same structure with a different name.
+    }
+}
+
+impl<T, const DIM: usize> Into<( T, BiVector<T, DIM> )> for Rotor<T, DIM>
+where
+    T: 'static + Copy + Default + Debug,
+    [(); DIM * ( DIM - 1 ) / 2 ]:
+{
+    fn into( self ) -> ( T, BiVector<T, DIM> ) {
+        unsafe { *( &self as *const Rotor<T, DIM> as *const ( T, BiVector<T, DIM> ) ) } // SAFETY: This is safe because they are the same structure with a different name.
+    }
+}
+
 impl<T, const DIM: usize> Magnitude for Rotor<T, DIM>
 where
     T: Default + Copy + Debug + Div<Output = T> + Num + Float,
@@ -158,21 +179,6 @@ where
 }
 
 /*
-impl<T, const COL: usize> GeometricProduct<Vector<T, COL>> for Rotor<T, DIM>
-where
-    T: Default + std::fmt::Debug + Copy + Sub<Output = T> + Mul<Output = T> + Num,
-    Self: InnerProduct<Vector<T, COL>, Output = T> + ExteriorProduct<Vector<T, COL>, Output = BiVector<T, COL>>,
-    [(); COL * ( COL - 1 ) / 2 ]:
-{
-    type Output = Rotor<T, COL>;
-
-    fn geometric_product( self, rhs: Vector<T, COL> ) -> Self::Output {
-        Rotor::new( self.inner_product( rhs ), self.exterior_product( rhs ) )
-    }
-}
-*/
-
-/*
 impl<T, const DIM: usize> Mul<Vector<T, DIM>> for Rotor<T, DIM>
 where
     T: Default + Copy + Debug + Div<Output = T> + DivAssign<T> + Num + Float,
@@ -182,7 +188,9 @@ where
     type Output = Vector<T, DIM>;
 
     fn mul( self, rhs: Vector<T, DIM> ) -> Vector<T, DIM> {
-        self.
+        let multivector: ( T, BiVector<T, DIM> ) = self.into();
+        let multivector_conjugate: ( T, BiVector<T, DIM> ) = self.conjugate().into();
+        multivector * rhs * multivector_conjugate
     }
 }
 */

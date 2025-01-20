@@ -1,6 +1,6 @@
 use std::{
     fmt::Debug,
-    ops::{ Neg, Sub, Mul, Div }
+    ops::{ Neg, Sub, Mul, Div, AddAssign }
 };
 
 use num::traits::{ Num, Float };
@@ -13,8 +13,6 @@ use linear_algebra::{
 };
 
 use crate::{
-    progression,
-    unique_combinations,
     ops::{
         //InteriorProduct,
         ExteriorProduct,
@@ -23,6 +21,7 @@ use crate::{
         GeometricProduct
     },
     bivector::BiVector,
+    trivector::TriVector,
     rotor::Rotor,
 };
 
@@ -60,12 +59,27 @@ where
     type Output = BiVector<T, COL>;
 
     fn exterior_product( self, rhs: Vector<T, COL> ) -> Self::Output {
-        let combinations: [( usize, usize ); COL * ( COL - 1 ) / 2 ] = unique_combinations( progression() );
         let mut res = BiVector::<T, COL>::default();
-        for ( k, ( i, j ) ) in combinations.iter().enumerate() {
-            res[ k ] = self[ *i ] * rhs[ *j ] - self[ *j ] * rhs[ *i ];
+        let mut k = 0;
+        for i in 0..( COL - 1 ) {
+            for j in ( i + 1 )..COL {
+                res[ k ] = self[ i ] * rhs[ j ] - self[ j ] * rhs[ i ];
+                k += 1;
+            }
         }
         res
+    }
+}
+
+impl<T, const COL: usize> ExteriorProduct<BiVector<T, COL>> for Vector<T, COL>
+where
+    T: Default + std::fmt::Debug + Copy + AddAssign + Mul<Output = T>,
+    [(); COL * ( COL - 1 ) / 2 ]:
+{
+    type Output = TriVector<T, COL>;
+
+    fn exterior_product( self, rhs: BiVector<T, COL> ) -> Self::Output {
+        rhs.exterior_product( self )
     }
 }
 
@@ -75,9 +89,9 @@ where
     Self: InnerProduct<Vector<T, COL>, Output = T> + ExteriorProduct<Vector<T, COL>, Output = BiVector<T, COL>>,
     [(); COL * ( COL - 1 ) / 2 ]:
 {
-    type Output = Rotor<T, COL>;
+    type Output = ( T, BiVector<T, COL> );
 
     fn geometric_product( self, rhs: Vector<T, COL> ) -> Self::Output {
-        Rotor::new( self.inner_product( rhs ), self.exterior_product( rhs ) )
+        ( self.inner_product( rhs ), self.exterior_product( rhs ) )
     }
 }
